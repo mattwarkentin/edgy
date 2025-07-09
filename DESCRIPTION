@@ -1,0 +1,23 @@
+Package: edgy
+Title: Linear Trend Regression Models
+Version: 0.0.0.9000
+Authors@R: c(
+    person("Matthew T.", "Warkentin", , "matthew.warkentin@ucalgary.ca", 
+           role = c("aut", "cre"), comment = c(ORCID = "0000-0001-8730-3511")),
+    person("Yibing", "Ruan", , "yibing.ruan@ahs.ca", role = "aut")
+  )
+Description: Fit linear spline models to assess trends in time-series data.
+  Report estimates for knot locations and annual percent changes in rates.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Imports: 
+    combinat,
+    dplyr,
+    glue,
+    lspline,
+    purrr,
+    rlang,
+    tibble,
+    tidyr
