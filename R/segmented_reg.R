@@ -8,6 +8,8 @@
 #' @param conf.level The confidence level to use for the confidence interval.
 #'   Must be strictly greater than 0 and less than 1.
 #'   Defaults to 0.95 which corresponds to a 95 percent confidence interval.
+#' @param log_y Logical for whether to fit `log(y) ~ x` instead of `y ~ x`.
+#'   Default is `TRUE`.
 #' @param x A `segmented_reg()` object.
 #' @param ... Not currently used.
 #'
@@ -21,6 +23,7 @@ segmented_reg <- function(
   opts = knot_opts(),
   metric = 'bic',
   conf.level = 0.95,
+  log_y = TRUE,
   ...
 ) {
   x_var <- rlang::f_rhs(formula)
@@ -28,13 +31,19 @@ segmented_reg <- function(
   y_var <- rlang::f_lhs(formula)
   y_vals <- rlang::inject(`$`(data, !!y_var))
 
-  opts$inv_fun <- exp
-  opts$fun <- log
+  if (log_y) {
+    opts$inv_fun <- exp
+    opts$fun <- log
+  } else {
+    opts$inv_fun <- identity
+    opts$fun <- identity
+  }
+
   opts$conf.type <- "parametric"
 
-  knot_grid <- make_knot_grid(x_vals, opts)
+  knot_grid <- make_knot_sets(x_vals, opts)
 
-  no_knot_form <- rlang::inject(log(!!y_var) ~ !!x_var)
+  no_knot_form <- rlang::inject(opts$fun(!!y_var) ~ !!x_var)
 
   no_knot_model <-
     tibble::enframe(list(stats::lm(no_knot_form, data)), NULL, 'model') |>
@@ -44,7 +53,9 @@ segmented_reg <- function(
     knot_grid |>
     tibble::enframe(NULL, 'knots') |>
     dplyr::mutate(
-      model = purrr::map(knots, \(k) segmented_reg_fit(y_var, x_var, k, data)),
+      model = purrr::map(knots, \(k) {
+        segmented_reg_fit(y_var, x_var, k, data, opts)
+      }),
       nknots = purrr::map_int(knots, length)
     ) |>
     dplyr::bind_rows(no_knot_model) |>
@@ -61,7 +72,7 @@ segmented_reg <- function(
       aicc = aic + 2 * (k * (k + 1)) / (N - k - 1),
       bic = (k * log(N)) - (2 * L),
       bic3 = log(sse / N) + ((3 * k + 2) / N) * log(N),
-      w = 1,
+      w = 0.5,
       wbic = (bic * (1 - w)) + (bic3 * w)
     )
 
@@ -87,14 +98,15 @@ segmented_reg <- function(
     model = best_fit$model[[1]],
     periods = periods,
     df = df,
-    conf.level = conf.level
+    conf.level = conf.level,
+    opts = opts
   )
 
   apc <-
     apc_data |>
     dplyr::select(period_start, period_end, apc, apc_ci_lwr, apc_ci_upr)
 
-  aapc <- estimate_aapc(apc_data, df = df, conf.level = conf.level)
+  aapc <- estimate_aapc(apc_data, df = df, conf.level = conf.level, opts = opts)
 
   ret <- list(
     formula = formula,
@@ -128,8 +140,11 @@ segmented_reg <- function(
   )
 }
 
-segmented_reg_fit <- function(y, x, k, data) {
-  fit <- stats::lm(rlang::inject(log(!!y) ~ lspline::lspline(!!x, k)), data)
+segmented_reg_fit <- function(y, x, k, data, opts) {
+  fit <- stats::lm(
+    rlang::inject(opts$fun(!!y) ~ lspline::lspline(!!x, k)),
+    data
+  )
   structure(fit, class = c("edgy_spline_fit", class(fit)))
 }
 

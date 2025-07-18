@@ -2,23 +2,27 @@
 % Please edit documentation in R/knots.R
 \name{knot_opts}
 \alias{knot_opts}
-\alias{make_knot_grid}
-\title{Define knot placements}
+\alias{print.edgy_knot_opts}
+\alias{make_knot_sets}
+\title{Knot Options}
 \usage{
 knot_opts(
-  min_knot = 0L,
-  max_knot = 4L,
+  min_knots = 1L,
+  max_knots = NULL,
   min_obs_end = 2L,
   min_obs_between = 2L,
   pts_between = 0L
 )
 
-make_knot_grid(x, opts)
+\method{print}{edgy_knot_opts}(x, ...)
+
+make_knot_sets(x, opts, force = FALSE)
 }
 \arguments{
-\item{min_knot}{Fewest number of knots to assess. Default is \code{0L}.}
+\item{min_knots}{Minimum number of knots to assess. Default is \code{1L}.}
 
-\item{max_knot}{Largest number of knots to assess. Default is \code{4L}.}
+\item{max_knots}{Maximum number of knots to assess. If \code{NULL}, the maximum
+number of knots will be estimated based on the number of data points.}
 
 \item{min_obs_end}{Minimum number of points from either end of the observed
 data range to allow a knot location. Default is \code{2L}.}
@@ -26,13 +30,28 @@ data range to allow a knot location. Default is \code{2L}.}
 \item{min_obs_between}{Number of observed data points between knot locations.
 Default is \code{2L}.}
 
-\item{pts_between}{Number of theoretical points between knot locations.
-Default is \code{4L}.}
+\item{pts_between}{Number of points to place between adjacent observed values.
+Default is \code{0L}.}
 
-\item{x}{Time points.}
+\item{x}{Observed time points.}
+
+\item{...}{Not currently used.}
 
 \item{opts}{A \code{knot_opts()} object.}
+
+\item{force}{Force the knot locations to be generated despite guidelines
+around the mininum number of observaions recommended for analysis.
+Default is \code{FALSE}.}
+}
+\value{
+\code{knot_opts()} returns a list with class \code{"edgy_knot_opts"}.
+\code{make_knot_sets()} returns a list of integer vectors that specify the
+knot locations to evaluate in grid search.
 }
 \description{
-Define knot placements
+Define rules for selecting knot locations for segmented regression.
+}
+\details{
+The minimum number of observations required to run the segmented regression
+analysis is estimated as \code{(2 * min_obs_end) + (max_knots - 1) * min_obs_between + max_knots}.
 }

@@ -16,6 +16,7 @@ segmented_reg(
   opts = knot_opts(),
   metric = "bic",
   conf.level = 0.95,
+  log_y = TRUE,
   ...
 )
 
@@ -44,6 +45,9 @@ extract_best_aapc(x, ...)
 \item{conf.level}{The confidence level to use for the confidence interval.
 Must be strictly greater than 0 and less than 1.
 Defaults to 0.95 which corresponds to a 95 percent confidence interval.}
+
+\item{log_y}{Logical for whether to fit \code{log(y) ~ x} instead of \code{y ~ x}.
+Default is \code{TRUE}.}
 
 \item{...}{Not currently used.}
 
