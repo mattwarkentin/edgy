@@ -6,15 +6,28 @@ df <-
   read_tsv('inst/Sample.Data.txt', col_names = FALSE) |>
   filter(X1 == 0L)
 
-res <- trend_reg(log(X3) ~ X2, df,
-                 opts = knot_opts(max_knot = 5, min_obs_between = 2))
+res <- segmented_reg(
+  formula = X3 ~ X2,
+  data = df,
+  opts = knot_opts(max_knot = 3),
+  conf.level = 0.95
+)
+
+res
+
+res <- segmented_reg(
+  formula = log(X3) ~ X2,
+  data = df,
+  opts = knot_opts(max_knot = 5),
+  conf.level = 0.9
+)
 
 res
 
 df |>
   ggplot() +
   geom_point(aes(X2, X3)) +
-  geom_line(data = res$data, aes(X2, fit)) +
+  geom_line(data = res$data, aes(X2, est)) +
   theme_minimal(14)
 
 ## Different time scale ----
@@ -32,9 +45,11 @@ df <-
     id = consecutive_id(month, day)
   )
 
-res <- trend_reg(delay ~ id, df, opts = knot_opts(max_knot = 1,
-                                                          min_obs_end = 4,
-                                                          min_obs_between = 6))
+res <- trend_reg(
+  delay ~ id,
+  df,
+  opts = knot_opts(max_knot = 1, min_obs_end = 4, min_obs_between = 6)
+)
 
 df |>
   ggplot() +
