@@ -4,3 +4,6 @@
 .Ruserdata
 .DS_Store
 /.quarto/
+inst/Examples.R
+inst/Sample.Data.txt
+inst/lit/

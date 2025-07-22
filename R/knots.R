@@ -23,8 +23,10 @@
 #'   analysis is estimated as `(2 * min_obs_end) + (max_knots - 1) * min_obs_between + max_knots`.
 #'
 #' @return `knot_opts()` returns a list with class `"edgy_knot_opts"`.
-#'   `make_knot_sets()` returns a list of integer vectors that specify the
-#'   knot locations to evaluate in grid search.
+#'   `make_knot_sets()` returns a two-item list with (1) a list of vectors that
+#'   specify the knot locations to evaluate in grid search and (2) the updated
+#'   `opts` object. `make_point_set()` returns the vector of points used to
+#'   generate the knot sets`.
 #'
 #' @md
 #'
@@ -34,7 +36,8 @@ knot_opts <- function(
   max_knots = NULL,
   min_obs_end = 2L,
   min_obs_between = 2L,
-  pts_between = 0L
+  pts_between = 0L,
+  force = FALSE
 ) {
   if (!rlang::is_null(max_knots)) {
     check_scalar_integer(max_knots, 'max_knots')
@@ -48,7 +51,7 @@ knot_opts <- function(
     rlang::abort(glue::glue('`min_knots` must be greater than or equal to 1'))
   }
 
-  if (!rlang::is_null(max_knots) && max_knots <= min_knots) {
+  if (!rlang::is_null(max_knots) && max_knots < min_knots) {
     rlang::abort(glue::glue('`max_knots` must be greater than `min_knots`'))
   }
 
@@ -65,7 +68,7 @@ knot_opts <- function(
   }
 
   if (pts_between < 0L) {
-    rlang::abort(glue::glue('`pts_between` must be greater than or equal to 1'))
+    rlang::abort(glue::glue('`pts_between` must be greater than or equal to 0'))
   }
 
   structure(
@@ -74,7 +77,8 @@ knot_opts <- function(
       max_knots = max_knots,
       min_obs_end = min_obs_end,
       min_obs_between = min_obs_between,
-      pts_between = pts_between
+      pts_between = pts_between,
+      force = force
     ),
     class = "edgy_knot_opts"
   )
@@ -85,6 +89,8 @@ knot_opts <- function(
 print.edgy_knot_opts <- function(x, ...) {
   if (rlang::is_null(x$max_knots)) {
     max_knots <- "<<Default>>"
+  } else {
+    max_knots <- x$max_knots
   }
 
   cli::cli_rule('Segmented Regression Knot Options')
@@ -110,7 +116,7 @@ make_knot_sets <- function(x, opts, force = FALSE) {
     opts$max_knots <- suggested_max_knots
   }
 
-  if (opts$max_knots <= opts$min_knots) {
+  if (opts$max_knots < opts$min_knots) {
     rlang::abort(glue::glue('`max_knots` must be greater than `min_knots`'))
   }
 
@@ -125,16 +131,20 @@ make_knot_sets <- function(x, opts, force = FALSE) {
     (opts$max_knots - 1) * opts$min_obs_between +
     opts$max_knots
 
-  if (length(x) < min_num_obs & !force) {
+  if (length(x) < min_num_obs & !opts$force) {
     rlang::abort(
-      'Ther are too few observations to run segmented regression with current knot options'
+      'Ther are too few observations to run segmented regression with current knot options. Set `knot_opts(force = TRUE)` to override this behavior.'
     )
   }
 
-  knot_set <- seq(opts$min_knot, opts$max_knot, by = 1)
+  num_knots <- seq(opts$min_knots, opts$max_knots, by = 1)
+
+  point_set <- make_point_set(x, opts)
 
   knot_sets <-
-    purrr::map(knot_set, \(k) combinat::combn(x, k, simplify = FALSE)) |>
+    purrr::map(num_knots, \(k) {
+      combinat::combn(point_set, k, simplify = FALSE)
+    }) |>
     purrr::list_flatten() |>
     purrr::keep(\(k) {
       all(
@@ -152,7 +162,30 @@ make_knot_sets <- function(x, opts, force = FALSE) {
       }
       TRUE
     })
-  knot_sets
+  list(knot_sets = knot_sets, opts = opts)
+}
+
+#' @rdname knot_opts
+#' @export
+make_point_set <- function(x, opts) {
+  unique_obs_pts <- sort(unique(x))
+
+  point_set <- unique_obs_pts
+
+  if (opts$pts_between > 0) {
+    seq_pairs <- purrr::map2(utils::head(x, -1), utils::tail(x, -1), c)
+
+    new_pts <-
+      purrr::map(seq_pairs, \(x) {
+        left <- x[[1]]
+        right <- x[[2]]
+        spacing <- right - left
+        seq(left, right, length.out = 2 + opts$pts_between)
+      })
+
+    point_set <- purrr::list_c(new_pts)
+  }
+  point_set
 }
 
 suggest_max_knots <- function(x) {

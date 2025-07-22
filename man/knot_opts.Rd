@@ -4,6 +4,7 @@
 \alias{knot_opts}
 \alias{print.edgy_knot_opts}
 \alias{make_knot_sets}
+\alias{make_point_set}
 \title{Knot Options}
 \usage{
 knot_opts(
@@ -11,12 +12,15 @@ knot_opts(
   max_knots = NULL,
   min_obs_end = 2L,
   min_obs_between = 2L,
-  pts_between = 0L
+  pts_between = 0L,
+  force = FALSE
 )
 
 \method{print}{edgy_knot_opts}(x, ...)
 
 make_knot_sets(x, opts, force = FALSE)
+
+make_point_set(x, opts)
 }
 \arguments{
 \item{min_knots}{Minimum number of knots to assess. Default is \code{1L}.}
@@ -33,20 +37,22 @@ Default is \code{2L}.}
 \item{pts_between}{Number of points to place between adjacent observed values.
 Default is \code{0L}.}
 
+\item{force}{Force the knot locations to be generated despite guidelines
+around the mininum number of observaions recommended for analysis.
+Default is \code{FALSE}.}
+
 \item{x}{Observed time points.}
 
 \item{...}{Not currently used.}
 
 \item{opts}{A \code{knot_opts()} object.}
-
-\item{force}{Force the knot locations to be generated despite guidelines
-around the mininum number of observaions recommended for analysis.
-Default is \code{FALSE}.}
 }
 \value{
 \code{knot_opts()} returns a list with class \code{"edgy_knot_opts"}.
-\code{make_knot_sets()} returns a list of integer vectors that specify the
-knot locations to evaluate in grid search.
+\code{make_knot_sets()} returns a two-item list with (1) a list of vectors that
+specify the knot locations to evaluate in grid search and (2) the updated
+\code{opts} object. \code{make_point_set()} returns the vector of points used to
+generate the knot sets`.
 }
 \description{
 Define rules for selecting knot locations for segmented regression.

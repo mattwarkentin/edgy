@@ -41,7 +41,9 @@ segmented_reg <- function(
 
   opts$conf.type <- "parametric"
 
-  knot_grid <- make_knot_sets(x_vals, opts)
+  knot_outputs <- make_knot_sets(x_vals, opts)
+  opts <- knot_outputs$opts
+  knot_sets <- knot_outputs$knot_sets
 
   no_knot_form <- rlang::inject(opts$fun(!!y_var) ~ !!x_var)
 
@@ -50,7 +52,7 @@ segmented_reg <- function(
     dplyr::mutate(nknots = 0)
 
   res <-
-    knot_grid |>
+    knot_sets |>
     tibble::enframe(NULL, 'knots') |>
     dplyr::mutate(
       model = purrr::map(knots, \(k) {
@@ -114,11 +116,13 @@ segmented_reg <- function(
     y = y_vals,
     x = x_vals,
     opts = opts,
-    knot_sets = knot_grid,
+    knot_sets = knot_sets,
     fits = res,
     best_fit = list(
+      fit = best_fit,
       model = best_fit$model[[1]],
       criterion = metric,
+      conf.level = conf.level,
       metrics = list(
         nknots = best_fit$nknots,
         knots = best_fit$knots[[1]],
@@ -151,7 +155,7 @@ segmented_reg_fit <- function(y, x, k, data, opts) {
 #' @rdname segmented_reg
 #' @export
 print.edgy_segmented_reg <- function(x, ...) {
-  nmodels <- nrow(x$fits)
+  nmodels <- format(nrow(x$fits), big.mark = ',')
   mets <- x$best_fit$metrics
   locs <- glue::glue_collapse(mets$knots, ", ")
   cli::cat_rule(glue::glue('Segmented Regression ({nmodels} models evaluated)'))
