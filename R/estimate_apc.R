@@ -1,4 +1,4 @@
-estimate_apc <- function(x, knots, model, periods, df, conf.level, opts) {
+estimate_apc <- function(x, knots, model, periods, deg_free, conf_level, opts) {
   periods <- get_periods(x, knots)
 
   broom::tidy(model) |>
@@ -7,16 +7,18 @@ estimate_apc <- function(x, knots, model, periods, df, conf.level, opts) {
     dplyr::mutate(
       var = diag(stats::vcov(model))[-1],
       apc = (opts$inv_fun(estimate) - 1) * 100,
+      apc_se = opts$inv_fun(estimate) * std.error,
       apc_ci_lwr = (opts$inv_fun(
-        (estimate - (stats::qt(1 - (1 - conf.level) / 2, df) * std.error))
+        (estimate - (stats::qt(1 - (1 - conf_level) / 2, deg_free) * apc_se))
       ) -
         1) *
         100,
       apc_ci_upr = (opts$inv_fun(
-        (estimate + (stats::qt(1 - (1 - conf.level) / 2, df) * std.error))
+        (estimate + (stats::qt(1 - (1 - conf_level) / 2, deg_free) * apc_se))
       ) -
         1) *
-        100
+        100,
+      apc_pval = NA_real_ #stats::dt(estimate, deg_free)
     )
 }
 
