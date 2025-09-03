@@ -5,6 +5,7 @@
 \alias{print.edgy_segmented_reg}
 \alias{extract_fits}
 \alias{extract_best_model}
+\alias{extract_best_predictions}
 \alias{extract_best_metrics}
 \alias{extract_best_apc}
 \alias{extract_best_aapc}
@@ -15,7 +16,7 @@ segmented_reg(
   data,
   opts = knot_opts(),
   metric = "bic",
-  conf.level = 0.95,
+  conf_level = 0.95,
   log_y = TRUE,
   ...
 )
@@ -25,6 +26,8 @@ segmented_reg(
 extract_fits(x, ...)
 
 extract_best_model(x, ...)
+
+extract_best_predictions(x, ...)
 
 extract_best_metrics(x, ...)
 
@@ -42,7 +45,7 @@ extract_best_aapc(x, ...)
 \item{metric}{Metric to use for model selection. One of \code{"bic"}, \code{"bic3"},
 \code{"wbic"}, \code{"aicc"}, or \verb{"aicc".} Default is \code{"bic"}.}
 
-\item{conf.level}{The confidence level to use for the confidence interval.
+\item{conf_level}{The confidence level to use for the confidence interval.
 Must be strictly greater than 0 and less than 1.
 Defaults to 0.95 which corresponds to a 95 percent confidence interval.}
 

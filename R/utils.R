@@ -37,8 +37,12 @@ globalVariables(c(
   'periods',
   'apc_ci_lwr',
   'apc_ci_upr',
+  'apc_se',
+  'apc_pval',
   'var',
   'aapc',
   'value',
-  'name'
+  'name',
+  '.fitted',
+  '.se.fit'
 ))

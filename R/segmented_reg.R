@@ -5,7 +5,7 @@
 #' @param opts A `knots_opt()` object providing Knot location options.
 #' @param metric Metric to use for model selection. One of `"bic"`, `"bic3"`,
 #'   `"wbic"`, `"aicc"`, or `"aicc".` Default is `"bic"`.
-#' @param conf.level The confidence level to use for the confidence interval.
+#' @param conf_level The confidence level to use for the confidence interval.
 #'   Must be strictly greater than 0 and less than 1.
 #'   Defaults to 0.95 which corresponds to a 95 percent confidence interval.
 #' @param log_y Logical for whether to fit `log(y) ~ x` instead of `y ~ x`.
@@ -15,6 +15,8 @@
 #'
 #' @return A named-list of class `"edgy_segmented_reg"`.
 #'
+#' @importFrom rlang :=
+#'
 #' @md
 #' @export
 segmented_reg <- function(
@@ -22,7 +24,7 @@ segmented_reg <- function(
   data,
   opts = knot_opts(),
   metric = 'bic',
-  conf.level = 0.95,
+  conf_level = 0.95,
   log_y = TRUE,
   ...
 ) {
@@ -92,23 +94,36 @@ segmented_reg <- function(
       est = fit
     )
 
-  df <- stats::df.residual(best_fit$model[[1]])
+  # https://surveillance.cancer.gov/help/joinpoint/statistical-notes/statistics-related-to-the-k-joinpoint-model/degrees-of-freedom
+  deg_free <- (best_fit$N - best_fit$nknots) - (2 * (best_fit$nknots + 1))
 
   apc_data <- estimate_apc(
     x = x_vals,
     knots = best_fit$knots[[1]],
     model = best_fit$model[[1]],
     periods = periods,
-    df = df,
-    conf.level = conf.level,
+    deg_free = deg_free,
+    conf_level = conf_level,
     opts = opts
   )
 
   apc <-
     apc_data |>
-    dplyr::select(period_start, period_end, apc, apc_ci_lwr, apc_ci_upr)
+    dplyr::select(
+      period_start,
+      period_end,
+      apc,
+      apc_ci_lwr,
+      apc_ci_upr,
+      apc_pval
+    )
 
-  aapc <- estimate_aapc(apc_data, df = df, conf.level = conf.level, opts = opts)
+  aapc <- estimate_aapc(
+    apc_data,
+    deg_free = deg_free,
+    conf_level = conf_level,
+    opts = opts
+  )
 
   ret <- list(
     formula = formula,
@@ -122,7 +137,8 @@ segmented_reg <- function(
       fit = best_fit,
       model = best_fit$model[[1]],
       criterion = metric,
-      conf.level = conf.level,
+      conf_level = conf_level,
+      deg_free = deg_free,
       metrics = list(
         nknots = best_fit$nknots,
         knots = best_fit$knots[[1]],
@@ -178,6 +194,26 @@ extract_best_model <- function(x, ...) {
   rlang::check_dots_empty()
   x$best_fit$model
 }
+
+#' @rdname segmented_reg
+#' @export
+extract_best_predictions <- function(x, ...) {
+  rlang::check_dots_empty()
+
+  y_var <- rlang::f_lhs(x$formula)
+  x_var <- rlang::f_rhs(x$formula)
+
+  extract_best_model(x) |>
+    broom::augment(se = TRUE) |>
+    dplyr::transmute(
+      !!y_var := x$y,
+      !!x_var := x$x,
+      .fitted = x$opts$inv_fun(.fitted),
+      .fitted_lci = .fitted - stats::qnorm(0.975) * x$opts$inv_fun(.se.fit),
+      .fitted_uci = .fitted + stats::qnorm(0.975) * x$opts$inv_fun(.se.fit)
+    )
+}
+
 
 #' @rdname segmented_reg
 #' @export
