@@ -43,6 +43,7 @@ globalVariables(c(
   'aapc',
   'value',
   'name',
-  '.fitted',
-  '.se.fit'
+  'est',
+  'est_se',
+  'pop'
 ))

@@ -1,4 +1,4 @@
-estimate_apc <- function(x, knots, model, periods, deg_free, conf_level, opts) {
+estimate_apc <- function(x, knots, model, deg_free, conf_level, opts) {
   periods <- get_periods(x, knots)
 
   broom::tidy(model) |>

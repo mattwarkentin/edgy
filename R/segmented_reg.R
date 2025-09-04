@@ -1,73 +1,101 @@
 #' Segmented Regression using Linear Splines
 #'
-#' @param formula Model formula.
+#' `segmented_reg()` fits a log-linear (i.e., Poisson) model for the outcome
+#'   `y` against a time variable `t` (usually with an offset, `offset`). Grid
+#'   search is performed to find the best model (i.e., optimal knot locations)
+#'   according to the `metric` criterion. Information about the best model can
+#'   be extracted from the returned object using the `extract_best_*()` set of
+#'   functions.
+#'
+#' @param y Outcome variable (e.g., case counts).
+#' @param t Time variable (e.g., years).
+#' @param offset Offset variable (e.g., population counts).
 #' @param data Data frame or tibble.
-#' @param opts A `knots_opt()` object providing Knot location options.
+#' @param opts A `knots_opt()` object providing knot location options.
 #' @param metric Metric to use for model selection. One of `"bic"`, `"bic3"`,
 #'   `"wbic"`, `"aicc"`, or `"aicc".` Default is `"bic"`.
 #' @param conf_level The confidence level to use for the confidence interval.
 #'   Must be strictly greater than 0 and less than 1.
 #'   Defaults to 0.95 which corresponds to a 95 percent confidence interval.
-#' @param log_y Logical for whether to fit `log(y) ~ x` instead of `y ~ x`.
-#'   Default is `TRUE`.
 #' @param x A `segmented_reg()` object.
 #' @param ... Not currently used.
+#'
+#' @details
+#' `lspline::lspline()` is used to compute the basis for a piecewise linear
+#'   spline to estimate coefficients in the log-linear model.
+#'
 #'
 #' @return A named-list of class `"edgy_segmented_reg"`.
 #'
 #' @importFrom rlang :=
 #'
+#' @examples
+#' \dontrun{
+#' fit <- segmented_reg(y = cases, t = year, offset = pop, data = df)
+#'
+#' extract_best_model(fit)
+#' extract_best_metrics(fit)
+#' extract_best_predictions(fit)
+#' extract_best_apc(fit)
+#' extract_best_aapc(fit)
+#' }
+#'
 #' @md
 #' @export
 segmented_reg <- function(
-  formula,
+  y,
+  t,
+  offset,
   data,
   opts = knot_opts(),
   metric = 'bic',
   conf_level = 0.95,
-  log_y = TRUE,
   ...
 ) {
-  x_var <- rlang::f_rhs(formula)
-  x_vals <- rlang::inject(`$`(data, !!x_var))
-  y_var <- rlang::f_lhs(formula)
-  y_vals <- rlang::inject(`$`(data, !!y_var))
+  y <- rlang::ensym(y)
+  t <- rlang::ensym(t)
+  offset <- rlang::ensym(offset)
 
-  if (log_y) {
-    opts$inv_fun <- exp
-    opts$fun <- log
-  } else {
-    opts$inv_fun <- identity
-    opts$fun <- identity
-  }
+  y_vals <- rlang::inject(`$`(data, !!y))
+  t_vals <- rlang::inject(`$`(data, !!t))
+  offset_vals <- rlang::inject(`$`(data, !!offset))
 
+  opts$link <- "log"
+  opts$fun <- log
+  opts$inv_fun <- exp
+  opts$family <- stats::poisson(opts$link)
   opts$conf.type <- "parametric"
 
-  knot_outputs <- make_knot_sets(x_vals, opts)
+  knot_outputs <- make_knot_sets(t_vals, opts)
   opts <- knot_outputs$opts
   knot_sets <- knot_outputs$knot_sets
 
-  no_knot_form <- rlang::inject(opts$fun(!!y_var) ~ !!x_var)
+  no_knot_form <- rlang::inject(!!y ~ !!t + offset(log(!!offset)))
 
-  no_knot_model <-
-    tibble::enframe(list(stats::lm(no_knot_form, data)), NULL, 'model') |>
+  no_knot_model <- stats::glm(no_knot_form, family = opts$family, data = data)
+
+  no_knot_data <-
+    tibble::enframe(
+      list(no_knot_model),
+      name = NULL,
+      value = 'model'
+    ) |>
     dplyr::mutate(nknots = 0)
 
   res <-
     knot_sets |>
-    tibble::enframe(NULL, 'knots') |>
+    tibble::enframe(name = NULL, value = 'knots') |>
     dplyr::mutate(
       model = purrr::map(knots, \(k) {
-        segmented_reg_fit(y_var, x_var, k, data, opts)
+        segmented_reg_fit(y, t, offset, k, data, opts)
       }),
       nknots = purrr::map_int(knots, length)
     ) |>
-    dplyr::bind_rows(no_knot_model) |>
+    dplyr::bind_rows(no_knot_data) |>
     dplyr::mutate(
       preds = purrr::map(model, \(m) {
-        suppressWarnings(stats::predict(m, interval = 'prediction'))
+        suppressWarnings(stats::predict(m))
       }),
-      preds = purrr::map(preds, tibble::as_tibble),
       k = purrr::map_int(model, \(m) base::length(m$coefficients) + 1),
       L = purrr::map_dbl(model, \(m) as.numeric(stats::logLik(m))),
       N = purrr::map_int(model, stats::nobs),
@@ -89,19 +117,15 @@ segmented_reg <- function(
         dplyr::select(preds) |>
         tidyr::unnest(preds)
     ) |>
-    dplyr::mutate(dplyr::across(c(fit, lwr, upr), opts$inv_fun)) |>
-    dplyr::rename(
-      est = fit
-    )
+    dplyr::mutate(est = opts$inv_fun(preds))
 
   # https://surveillance.cancer.gov/help/joinpoint/statistical-notes/statistics-related-to-the-k-joinpoint-model/degrees-of-freedom
   deg_free <- (best_fit$N - best_fit$nknots) - (2 * (best_fit$nknots + 1))
 
   apc_data <- estimate_apc(
-    x = x_vals,
+    x = t_vals,
     knots = best_fit$knots[[1]],
     model = best_fit$model[[1]],
-    periods = periods,
     deg_free = deg_free,
     conf_level = conf_level,
     opts = opts
@@ -126,10 +150,13 @@ segmented_reg <- function(
   )
 
   ret <- list(
-    formula = formula,
+    y = y,
+    t = t,
+    offset = offset,
+    y_vals = y_vals,
+    t_vals = t_vals,
+    offset_vals = offset_vals,
     data = data_with_preds,
-    y = y_vals,
-    x = x_vals,
     opts = opts,
     knot_sets = knot_sets,
     fits = res,
@@ -160,10 +187,11 @@ segmented_reg <- function(
   )
 }
 
-segmented_reg_fit <- function(y, x, k, data, opts) {
-  fit <- stats::lm(
-    rlang::inject(opts$fun(!!y) ~ lspline::lspline(!!x, k)),
-    data
+segmented_reg_fit <- function(y, t, o, k, data, opts) {
+  fit <- stats::glm(
+    rlang::inject(!!y ~ lspline::lspline(!!t, k) + offset(log(!!o))),
+    data = data,
+    family = opts$family
   )
   structure(fit, class = c("edgy_spline_fit", class(fit)))
 }
@@ -200,18 +228,22 @@ extract_best_model <- function(x, ...) {
 extract_best_predictions <- function(x, ...) {
   rlang::check_dots_empty()
 
-  y_var <- rlang::f_lhs(x$formula)
-  x_var <- rlang::f_rhs(x$formula)
+  best_model <- extract_best_model(x)
 
-  extract_best_model(x) |>
-    broom::augment(se = TRUE) |>
-    dplyr::transmute(
-      !!y_var := x$y,
-      !!x_var := x$x,
-      .fitted = x$opts$inv_fun(.fitted),
-      .fitted_lci = .fitted - stats::qnorm(0.975) * x$opts$inv_fun(.se.fit),
-      .fitted_uci = .fitted + stats::qnorm(0.975) * x$opts$inv_fun(.se.fit)
-    )
+  preds <- stats::predict(best_model, se.fit = TRUE, type = "link")
+
+  tibble::tibble(
+    !!x$t := x$t_vals,
+    !!x$y := x$y_vals,
+    !!x$offset := x$offset_vals,
+    est = x$opts$inv_fun(preds$fit),
+    est_se = x$opts$inv_fun(preds$se.fit),
+    rate = est / pop,
+    rate_lwr = x$opts$inv_fun(preds$fit - stats::qnorm(0.975) * preds$se.fit) /
+      pop,
+    rate_upr = x$opts$inv_fun(preds$fit + stats::qnorm(0.975) * preds$se.fit) /
+      pop
+  )
 }
 
 
