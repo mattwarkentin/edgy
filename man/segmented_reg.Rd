@@ -12,9 +12,7 @@
 \title{Segmented Regression using Linear Splines}
 \usage{
 segmented_reg(
-  y,
-  t,
-  offset,
+  formula,
   data,
   opts = knot_opts(),
   metric = "bic",
@@ -37,13 +35,9 @@ extract_best_apc(x, ...)
 extract_best_aapc(x, ...)
 }
 \arguments{
-\item{y}{Outcome variable (e.g., case counts).}
+\item{formula}{Model formula.}
 
-\item{t}{Time variable (e.g., years).}
-
-\item{offset}{Offset variable (e.g., population counts).}
-
-\item{data}{Data frame or tibble.}
+\item{data}{Data frame or \code{tibble}.}
 
 \item{opts}{A \code{knots_opt()} object providing knot location options.}
 
@@ -62,20 +56,19 @@ Defaults to 0.95 which corresponds to a 95 percent confidence interval.}
 A named-list of class \code{"edgy_segmented_reg"}.
 }
 \description{
-\code{segmented_reg()} fits a log-linear (i.e., Poisson) model for the outcome
-\code{y} against a time variable \code{t} (usually with an offset, \code{offset}). Grid
-search is performed to find the best model (i.e., optimal knot locations)
-according to the \code{metric} criterion. Information about the best model can
-be extracted from the returned object using the \verb{extract_best_*()} set of
-functions.
+\code{segmented_reg()} fits a linear spline model for the outcome (e.g., rates)
+against a time variables (e.g., years). Grid search is performed to find
+the best model (i.e., optimal knot locations) according to the \code{metric}
+criterion. Information about the best model can be extracted from the
+returned object using the \verb{extract_best_*()} set of functions.
 }
 \details{
 \code{lspline::lspline()} is used to compute the basis for a piecewise linear
-spline to estimate coefficients in the log-linear model.
+spline to estimate coefficients in the segmented regression model.
 }
 \examples{
 \dontrun{
-fit <- segmented_reg(y = cases, t = year, offset = pop, data = df)
+fit <- segmented_reg(rate ~ year, data = df)
 
 extract_best_model(fit)
 extract_best_metrics(fit)

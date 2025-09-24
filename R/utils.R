@@ -43,7 +43,6 @@ globalVariables(c(
   'aapc',
   'value',
   'name',
-  'est',
-  'est_se',
-  'pop'
+  '.fitted',
+  'nknots'
 ))
