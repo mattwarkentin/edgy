@@ -10,7 +10,7 @@
 #' @param data Data frame or `tibble`.
 #' @param opts A `knots_opt()` object providing knot location options.
 #' @param metric Metric to use for model selection. One of `"bic"`, `"bic3"`,
-#'   `"wbic"`, `"aicc"`, or `"aicc".` Default is `"bic"`.
+#'   `"aic"`, or `"aicc".` Default is `"bic3"`.
 #' @param conf_level The confidence level to use for the confidence interval.
 #'   Must be strictly greater than 0 and less than 1.
 #'   Defaults to 0.95 which corresponds to a 95 percent confidence interval.
@@ -44,7 +44,7 @@ segmented_reg <- function(
   formula,
   data,
   opts = knot_opts(),
-  metric = 'bic',
+  metric = 'bic3',
   conf_level = 0.95,
   ...
 ) {
@@ -52,6 +52,8 @@ segmented_reg <- function(
   x_vals <- rlang::inject(`$`(data, !!x_var))
   y_var <- rlang::f_lhs(formula)
   y_vals <- rlang::inject(`$`(data, !!y_var))
+
+  metric <- rlang::arg_match(metric, c('bic', 'bic3', 'aic', 'aicc'))
 
   opts$fun <- log
   opts$inv_fun <- exp
@@ -94,10 +96,8 @@ segmented_reg <- function(
       sse = purrr::map_dbl(model, \(m) sum(m$residuals^2)),
       aic = -2 * L + 2 * k,
       aicc = aic + 2 * (k * (k + 1)) / (N - k - 1),
-      bic = (k * log(N)) - (2 * L),
-      bic3 = log(sse / N) + ((3 * k + 2) / N) * log(N),
-      w = 0.5,
-      wbic = (bic * (1 - w)) + (bic3 * w)
+      bic = log(sse / N) + ((2 * k + 2) / N) * log(N),
+      bic3 = log(sse / N) + ((3 * k + 2) / N) * log(N)
     ) |>
     dplyr::arrange(nknots)
 

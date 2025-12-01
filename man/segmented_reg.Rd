@@ -15,7 +15,7 @@ segmented_reg(
   formula,
   data,
   opts = knot_opts(),
-  metric = "bic",
+  metric = "bic3",
   conf_level = 0.95,
   ...
 )
@@ -42,7 +42,7 @@ extract_best_aapc(x, ...)
 \item{opts}{A \code{knots_opt()} object providing knot location options.}
 
 \item{metric}{Metric to use for model selection. One of \code{"bic"}, \code{"bic3"},
-\code{"wbic"}, \code{"aicc"}, or \verb{"aicc".} Default is \code{"bic"}.}
+\code{"aic"}, or \verb{"aicc".} Default is \code{"bic3"}.}
 
 \item{conf_level}{The confidence level to use for the confidence interval.
 Must be strictly greater than 0 and less than 1.
