@@ -134,8 +134,7 @@ segmented_reg <- function(
       period_end,
       apc,
       apc_ci_lwr,
-      apc_ci_upr,
-      apc_pval
+      apc_ci_upr
     )
 
   aapc <- estimate_aapc(
@@ -161,16 +160,15 @@ segmented_reg <- function(
       criterion = metric,
       conf_level = conf_level,
       deg_free = deg_free,
+      knots = best_fit$knots[[1]],
       metrics = list(
         nknots = best_fit$nknots,
-        knots = best_fit$knots[[1]],
         nobs = best_fit$N,
         logLik = best_fit$L,
         AIC = best_fit$aic,
         AICc = best_fit$aicc,
         BIC = best_fit$bic,
-        BIC3 = best_fit$bic3,
-        WBIC = best_fit$wbic
+        BIC3 = best_fit$bic3
       ),
       APC = apc,
       AAPC = aapc
@@ -195,7 +193,7 @@ segmented_reg_fit <- function(y, x, k, data, opts) {
 print.edgy_segmented_reg <- function(x, ...) {
   nmodels <- format(nrow(x$fits), big.mark = ',')
   mets <- x$best_fit$metrics
-  locs <- glue::glue_collapse(mets$knots, ", ")
+  locs <- glue::glue_collapse(x$best_fit$knots, ", ")
   cli::cat_rule(glue::glue('Segmented Regression ({nmodels} models evaluated)'))
   cli::cli_alert(glue::glue('Number of obs: {mets$nobs}'))
   cli::cli_alert(glue::glue('Number of knots: {mets$nknots}'))

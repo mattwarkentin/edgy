@@ -1,11 +1,11 @@
 estimate_apc <- function(x, knots, model, deg_free, conf_level, opts) {
   periods <- get_periods(x, knots)
 
-  broom::tidy(model) |>
+  suppressWarnings(broom::tidy(model)) |>
     dplyr::filter(term != '(Intercept)') |>
     dplyr::bind_cols(periods) |>
     dplyr::mutate(
-      var = diag(stats::vcov(model))[-1],
+      beta_var = std.error^2,
       apc = (opts$inv_fun(estimate) - 1) * 100,
       apc_se = opts$inv_fun(estimate) * std.error,
       apc_ci_lwr = (opts$inv_fun(
@@ -17,8 +17,7 @@ estimate_apc <- function(x, knots, model, deg_free, conf_level, opts) {
         (estimate + (stats::qt(1 - (1 - conf_level) / 2, deg_free) * apc_se))
       ) -
         1) *
-        100,
-      apc_pval = NA_real_ #stats::dt(estimate, deg_free)
+        100
     )
 }
 
