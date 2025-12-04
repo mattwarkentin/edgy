@@ -17,7 +17,8 @@ estimate_apc <- function(x, knots, model, deg_free, conf_level, opts) {
         (estimate + (stats::qt(1 - (1 - conf_level) / 2, deg_free) * apc_se))
       ) -
         1) *
-        100
+        100,
+      apc_pval = 2 * (1 - stats::pt(abs(estimate / std.error), deg_free))
     )
 }
 

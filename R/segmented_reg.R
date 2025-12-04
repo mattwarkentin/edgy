@@ -134,7 +134,8 @@ segmented_reg <- function(
       period_end,
       apc,
       apc_ci_lwr,
-      apc_ci_upr
+      apc_ci_upr,
+      apc_pval
     )
 
   aapc <- estimate_aapc(
