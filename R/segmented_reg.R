@@ -53,6 +53,8 @@ segmented_reg <- function(
   y_var <- rlang::f_lhs(formula)
   y_vals <- rlang::inject(`$`(data, !!y_var))
 
+  check_positive_rates(y_vals)
+
   metric <- rlang::arg_match(metric, c('bic', 'bic3', 'aic', 'aicc'))
 
   opts$fun <- log

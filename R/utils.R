@@ -5,6 +5,20 @@ check_scalar_integer <- function(x, name) {
   rlang::abort(glue::glue('`{name}` must be a scalar integer.'))
 }
 
+zero_rate_transform <- function(n, num = 0.5) {
+  0.5 / n
+}
+
+check_positive_rates <- function(x) {
+  if (rlang::is_double(x) & all(x > 0)) {
+    return(TRUE)
+  }
+  rlang::abort(
+    message = "Rates must be strictly positive. Consider transforming zero rates (e.g., 0.5 / n, where n is the number of persons in that year).",
+    call = rlang::env_parent()
+  )
+}
+
 globalVariables(c(
   'min_knots',
   'max_knots',
