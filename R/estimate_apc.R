@@ -30,5 +30,5 @@ get_periods <- function(x, knots) {
       period_start = period_years,
       period_end = dplyr::lead(period_start)
     ) |>
-    tidyr::drop_na()
+    dplyr::filter(!dplyr::if_any(dplyr::everything(), is.na))
 }
