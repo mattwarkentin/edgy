@@ -107,7 +107,7 @@ print.edgy_knot_opts <- function(x, ...) {
 
 #' @rdname knot_opts
 #' @export
-make_knot_sets <- function(x, opts, force = FALSE) {
+make_knot_sets <- function(x, opts) {
   rlang::inherits_any(opts, "edgy_knot_opts")
 
   suggested_max_knots <- suggest_max_knots(x)
@@ -141,28 +141,44 @@ make_knot_sets <- function(x, opts, force = FALSE) {
 
   point_set <- make_point_set(x, opts)
 
-  knot_sets <-
-    purrr::map(num_knots, \(k) {
-      combinat::combn(point_set, k, simplify = FALSE)
-    }) |>
-    purrr::list_flatten() |>
-    purrr::keep(\(k) {
-      all(
-        k >= min(x) + opts$min_obs_end &
-          k <= max(x) - opts$min_obs_end
-      )
-    }) |>
-    purrr::keep(\(k) {
-      if (base::length(k) == 1) {
-        return(TRUE)
-      }
-      lk <- base::length(k) - 1
-      for (i in 1:lk) {
-        if (k[[i + 1]] - k[[i]] < opts$min_obs_between) return(FALSE)
-      }
-      TRUE
-    })
+  knot_sets <- purrr::map(
+    .x = num_knots,
+    .f = \(k) make_knots_for_k(point_set, k, opts)
+  ) |>
+    purrr::list_flatten()
+
   list(knot_sets = knot_sets, opts = opts)
+}
+
+make_knots_for_k <- function(x, k, opts) {
+  n <- length(x)
+
+  # interior length
+  m <- n - 2L * opts$min_obs_end
+
+  if (m <= 0L || k <= 0L) {
+    return(list())
+  }
+
+  # compressed length
+  max_base <- m - (opts$min_obs_between - 1L) * (k - 1L)
+
+  if (max_base < k) {
+    return(list())
+  }
+
+  base_combos <- utils::combn(seq_len(max_base), k, simplify = FALSE)
+
+  result <- purrr::map(
+    .x = base_combos,
+    .f = \(y) {
+      expanded <- y + (opts$min_obs_between - 1L) * (seq_along(y) - 1L)
+      idx <- as.integer(expanded + opts$min_obs_end)
+      x[idx]
+    }
+  )
+
+  result
 }
 
 #' @rdname knot_opts
@@ -185,6 +201,7 @@ make_point_set <- function(x, opts) {
 
     point_set <- purrr::list_c(new_pts)
   }
+
   point_set
 }
 

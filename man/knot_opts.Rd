@@ -18,7 +18,7 @@ knot_opts(
 
 \method{print}{edgy_knot_opts}(x, ...)
 
-make_knot_sets(x, opts, force = FALSE)
+make_knot_sets(x, opts)
 
 make_point_set(x, opts)
 }
