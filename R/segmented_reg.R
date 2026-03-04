@@ -14,18 +14,27 @@
 #' @param conf_level The confidence level to use for the confidence interval.
 #'   Must be strictly greater than 0 and less than 1.
 #'   Defaults to 0.95 which corresponds to a 95 percent confidence interval.
+#' @param progress Whether to show progress bars. By default, progress bars are
+#'   enabled in interactive sessions (i.e., if `rlang::is_interactive()`
+#'   returns `TRUE`).
 #' @param x A `segmented_reg()` object.
 #' @param ... Not currently used.
 #'
 #' @details
-#' `lspline::lspline()` is used to compute the basis for a piecewise linear
+#' [lspline::lspline()] is used to compute the basis for a piecewise linear
 #'   spline to estimate coefficients in the segmented regression model.
+#'
+#'   If [mirai::daemons()] has been used to set persistent background processes,
+#'   this function will fit segmented regression models in parallel using all
+#'   available processes.
 #'
 #' @return A named-list of class `"edgy_segmented_reg"`.
 #'
 #' @md
 #'
 #' @importFrom rlang :=
+#' @import carrier
+#' @import mirai
 #'
 #' @examples
 #' \dontrun{
@@ -46,6 +55,7 @@ segmented_reg <- function(
   opts = knot_opts(),
   metric = 'bic3',
   conf_level = 0.95,
+  progress = rlang::is_interactive(),
   ...
 ) {
   x_var <- rlang::f_rhs(formula)
@@ -79,19 +89,26 @@ segmented_reg <- function(
 
   res <-
     knot_sets |>
-    tibble::enframe(name = NULL, value = 'knots') |>
+    tibble::enframe(name = "id", value = "knots") |>
     dplyr::mutate(
-      model = purrr::map(knots, \(k) {
-        segmented_reg_fit(y_var, x_var, k, data, opts)
-      }),
+      model = purrr::map(
+        .x = knots,
+        .f = purrr::in_parallel(
+          \(k) {
+            segmented_reg_fit(y_vals, x_vals, k, opts)
+          },
+          segmented_reg_fit = segmented_reg_fit,
+          y_vals = y_vals,
+          x_vals = x_vals,
+          opts = opts
+        ),
+        .progress = ifelse(progress, "Fitting models", FALSE)
+      ),
       nknots = purrr::map_int(knots, length)
     ) |>
     dplyr::bind_rows(no_knot_data) |>
     dplyr::mutate(
-      preds = purrr::map(model, \(m) {
-        suppressWarnings(stats::predict(m, interval = 'prediction'))
-      }),
-      preds = purrr::map(preds, tibble::as_tibble),
+      preds = purrr::map(model, \(m) m$fitted.values),
       k = purrr::map_int(model, \(m) base::length(m$coefficients) + 1),
       L = purrr::map_dbl(model, \(m) as.numeric(stats::logLik(m))),
       N = purrr::map_int(model, stats::nobs),
@@ -106,15 +123,9 @@ segmented_reg <- function(
   best_fit <- dplyr::slice_min(res, !!rlang::sym(metric), with_ties = FALSE)
 
   data_with_preds <-
-    dplyr::bind_cols(
-      data,
-      best_fit |>
-        dplyr::select(preds) |>
-        tidyr::unnest(preds)
-    ) |>
-    dplyr::mutate(dplyr::across(c(fit, lwr, upr), opts$inv_fun)) |>
-    dplyr::rename(
-      est = fit
+    data |>
+    dplyr::mutate(
+      est = opts$inv_fun(best_fit$preds[[1]])
     )
 
   # https://surveillance.cancer.gov/help/joinpoint/statistical-notes/statistics-related-to-the-k-joinpoint-model/degrees-of-freedom
@@ -183,10 +194,9 @@ segmented_reg <- function(
   )
 }
 
-segmented_reg_fit <- function(y, x, k, data, opts) {
+segmented_reg_fit <- function(y, x, k, opts) {
   fit <- stats::lm(
-    formula = rlang::inject(opts$fun(!!y) ~ lspline::lspline(!!x, k)),
-    data = data
+    formula = rlang::inject(opts$fun(!!y) ~ lspline::lspline(!!x, k))
   )
   structure(fit, class = c("edgy_spline_fit", class(fit)))
 }

@@ -17,6 +17,7 @@ segmented_reg(
   opts = knot_opts(),
   metric = "bic3",
   conf_level = 0.95,
+  progress = rlang::is_interactive(),
   ...
 )
 
@@ -48,6 +49,10 @@ extract_best_aapc(x, ...)
 Must be strictly greater than 0 and less than 1.
 Defaults to 0.95 which corresponds to a 95 percent confidence interval.}
 
+\item{progress}{Whether to show progress bars. By default, progress bars are
+enabled in interactive sessions (i.e., if \code{rlang::is_interactive()}
+returns \code{TRUE}).}
+
 \item{...}{Not currently used.}
 
 \item{x}{A \code{segmented_reg()} object.}
@@ -63,8 +68,12 @@ criterion. Information about the best model can be extracted from the
 returned object using the \verb{extract_best_*()} set of functions.
 }
 \details{
-\code{lspline::lspline()} is used to compute the basis for a piecewise linear
+\code{\link[lspline:lspline]{lspline::lspline()}} is used to compute the basis for a piecewise linear
 spline to estimate coefficients in the segmented regression model.
+
+If \code{\link[mirai:daemons]{mirai::daemons()}} has been used to set persistent background processes,
+this function will fit segmented regression models in parallel using all
+available processes.
 }
 \examples{
 \dontrun{

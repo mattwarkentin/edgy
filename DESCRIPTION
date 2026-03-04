@@ -17,12 +17,12 @@ Depends:
     R (>= 4.1)
 Imports: 
     broom,
+    carrier (>= 0.3.0),
     cli,
-    combinat,
     dplyr,
     glue,
     lspline,
-    purrr,
+    mirai (>= 2.5.1),
+    purrr (>= 1.1.0),
     rlang,
-    tibble,
-    tidyr
+    tibble
