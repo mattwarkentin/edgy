@@ -2,15 +2,15 @@
 #'
 #' Define rules for selecting knot locations for segmented regression.
 #'
-#' @param min_knots Minimum number of knots to assess. Default is `1L`.
-#' @param max_knots Maximum number of knots to assess. If `NULL`, the maximum
+#' @param min_knots Minimum number of knots to evaluate. Default is `1L`.
+#' @param max_knots Maximum number of knots to evaluate. If `NULL`, the maximum
 #'   number of knots will be estimated based on the number of data points.
 #' @param min_obs_end Minimum number of points from either end of the observed
 #'   data range to allow a knot location. Default is `2L`.
-#' @param min_obs_between Number of observed data points between knot locations.
-#'   Default is `2L`.
-#' @param pts_between Number of points to place between adjacent observed values.
-#'   Default is `0L`.
+#' @param min_obs_between Minimum number of data points between knot
+#'   locations. Default is `2L`.
+#' @param pts_between Number of new data points to place between adjacent
+#'   observed data points. Default is `0L`.
 #' @param x Observed time points.
 #' @param opts A `knot_opts()` object.
 #' @param force Force the knot locations to be generated despite guidelines
@@ -93,16 +93,16 @@ print.edgy_knot_opts <- function(x, ...) {
     max_knots <- x$max_knots
   }
 
-  cli::cli_rule('Segmented Regression Knot Options')
-  cli::cat_bullet(glue::glue('Minimum number of knots: {x$min_knots}'))
-  cli::cat_bullet(glue::glue('Maximum number of knots: {max_knots}'))
+  cli::cli_rule("Segmented Regression Knot Options")
+  cli::cat_bullet(glue::glue("Minimum number of knots: {x$min_knots}"))
+  cli::cat_bullet(glue::glue("Maximum number of knots: {max_knots}"))
   cli::cat_bullet(glue::glue(
-    'Minimum observations from end points: {x$min_obs_end}'
+    "Minimum observations from end points: {x$min_obs_end}"
   ))
   cli::cat_bullet(glue::glue(
-    'Minimum observations between knots: {x$min_obs_between}'
+    "Minimum observations between knots: {x$min_obs_between}"
   ))
-  cli::cat_bullet(glue::glue('Points between adjacent values: {x$pts_between}'))
+  cli::cat_bullet(glue::glue("Points between adjacent values: {x$pts_between}"))
 }
 
 #' @rdname knot_opts
@@ -117,12 +117,12 @@ make_knot_sets <- function(x, opts) {
   }
 
   if (opts$max_knots < opts$min_knots) {
-    rlang::abort(glue::glue('`max_knots` must be greater than `min_knots`'))
+    rlang::abort(glue::glue("`max_knots` must be greater than `min_knots`."))
   }
 
   if (opts$max_knots > suggested_max_knots) {
     rlang::warn(glue::glue(
-      "`max_knots` ({opts$max_knots}) is larger than the recommended maximum number of knots ({suggested_max_knots})"
+      "`max_knots` ({opts$max_knots}) is larger than the recommended maximum number of knots ({suggested_max_knots})."
     ))
   }
 
@@ -133,7 +133,7 @@ make_knot_sets <- function(x, opts) {
 
   if (length(x) < min_num_obs & !opts$force) {
     rlang::abort(
-      'Ther are too few observations to run segmented regression with current knot options. Set `knot_opts(force = TRUE)` to override this behavior.'
+      "There are too few observations to run segmented regression with current knot options. Set `knot_opts(force = TRUE)` to override this behavior."
     )
   }
 

@@ -23,19 +23,19 @@ make_knot_sets(x, opts)
 make_point_set(x, opts)
 }
 \arguments{
-\item{min_knots}{Minimum number of knots to assess. Default is \code{1L}.}
+\item{min_knots}{Minimum number of knots to evaluate. Default is \code{1L}.}
 
-\item{max_knots}{Maximum number of knots to assess. If \code{NULL}, the maximum
+\item{max_knots}{Maximum number of knots to evaluate. If \code{NULL}, the maximum
 number of knots will be estimated based on the number of data points.}
 
 \item{min_obs_end}{Minimum number of points from either end of the observed
 data range to allow a knot location. Default is \code{2L}.}
 
-\item{min_obs_between}{Number of observed data points between knot locations.
-Default is \code{2L}.}
+\item{min_obs_between}{Minimum number of data points between knot
+locations. Default is \code{2L}.}
 
-\item{pts_between}{Number of points to place between adjacent observed values.
-Default is \code{0L}.}
+\item{pts_between}{Number of new data points to place between adjacent
+observed data points. Default is \code{0L}.}
 
 \item{force}{Force the knot locations to be generated despite guidelines
 around the mininum number of observaions recommended for analysis.

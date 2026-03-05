@@ -9,7 +9,7 @@
 Fit linear spline models to assess trends in time-series data. Report estimates for knot locations and annual percent changes in rates.
 }
 \author{
-\strong{Maintainer}: Matthew T. Warkentin \email{matthew.warkentin@ucalgary.ca} (\href{https://orcid.org/0000-0001-8730-3511}{ORCID})
+\strong{Maintainer}: Matthew T. Warkentin \email{matthew.warkentin@ucalgary.ca} (\href{https://orcid.org/0000-0001-8730-3511}{ORCID}) [copyright holder]
 
 Other contributors:
 \itemize{
