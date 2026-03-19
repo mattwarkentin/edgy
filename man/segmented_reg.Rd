@@ -14,6 +14,7 @@
 segmented_reg(
   formula,
   data,
+  events = NULL,
   opts = knot_opts(),
   metric = "bic3",
   conf_level = 0.95,
@@ -39,6 +40,10 @@ extract_best_aapc(x, ...)
 \item{formula}{Model formula.}
 
 \item{data}{Data frame or \code{tibble}.}
+
+\item{events}{Vector with the number of events (e.g., deaths) that correspond
+to the rate data in the formula. If provided, weighted least squares is
+used instead of ordinary least squares for fitting regression models.}
 
 \item{opts}{A \code{knots_opt()} object providing knot location options.}
 

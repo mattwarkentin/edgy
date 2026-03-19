@@ -19,6 +19,16 @@ check_positive_rates <- function(x) {
   )
 }
 
+check_nonnegative_int <- function(x) {
+  if (rlang::is_integerish(x) & all(x >= 0)) {
+    return(TRUE)
+  }
+  rlang::abort(
+    message = "Events must be strictly non-negative.",
+    call = rlang::env_parent()
+  )
+}
+
 globalVariables(c(
   'min_knots',
   'max_knots',

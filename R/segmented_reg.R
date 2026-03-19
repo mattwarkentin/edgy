@@ -8,6 +8,9 @@
 #'
 #' @param formula Model formula.
 #' @param data Data frame or `tibble`.
+#' @param events Vector with the number of events (e.g., deaths) that correspond
+#'   to the rate data in the formula. If provided, weighted least squares is
+#'   used instead of ordinary least squares for fitting regression models.
 #' @param opts A `knots_opt()` object providing knot location options.
 #' @param metric Metric to use for model selection. One of `"bic"`, `"bic3"`,
 #'   `"aic"`, or `"aicc".` Default is `"bic3"`.
@@ -52,6 +55,7 @@
 segmented_reg <- function(
   formula,
   data,
+  events = NULL,
   opts = knot_opts(),
   metric = 'bic3',
   conf_level = 0.95,
@@ -65,6 +69,13 @@ segmented_reg <- function(
 
   check_positive_rates(y_vals)
 
+  if (rlang::is_null(events)) {
+    wts <- rep_len(1L, length(y_vals))
+  } else {
+    check_nonnegative_int(events)
+    wts <- events
+  }
+
   metric <- rlang::arg_match(metric, c('bic', 'bic3', 'aic', 'aicc'))
 
   opts$fun <- log
@@ -77,7 +88,7 @@ segmented_reg <- function(
 
   no_knot_form <- rlang::inject(opts$fun(!!y_var) ~ !!x_var)
 
-  no_knot_model <- stats::lm(formula = no_knot_form, data = data)
+  no_knot_model <- stats::lm(formula = no_knot_form, data = data, weights = wts)
 
   no_knot_data <-
     tibble::enframe(
@@ -95,11 +106,12 @@ segmented_reg <- function(
         .x = knots,
         .f = purrr::in_parallel(
           \(k) {
-            segmented_reg_fit(y_vals, x_vals, k, opts)
+            segmented_reg_fit(y_vals, x_vals, wts, k, opts)
           },
           segmented_reg_fit = segmented_reg_fit,
           y_vals = y_vals,
           x_vals = x_vals,
+          wts = wts,
           opts = opts
         ),
         .progress = ifelse(progress, "Fitting models", FALSE)
@@ -194,9 +206,10 @@ segmented_reg <- function(
   )
 }
 
-segmented_reg_fit <- function(y, x, k, opts) {
+segmented_reg_fit <- function(y, x, w, k, opts) {
   fit <- stats::lm(
-    formula = rlang::inject(opts$fun(!!y) ~ lspline::lspline(!!x, k))
+    formula = rlang::inject(opts$fun(!!y) ~ lspline::lspline(!!x, k)),
+    weights = w
   )
   structure(fit, class = c("edgy_spline_fit", class(fit)))
 }
