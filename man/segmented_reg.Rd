@@ -3,12 +3,6 @@
 \name{segmented_reg}
 \alias{segmented_reg}
 \alias{print.edgy_segmented_reg}
-\alias{extract_fits}
-\alias{extract_best_model}
-\alias{extract_best_predictions}
-\alias{extract_best_metrics}
-\alias{extract_best_apc}
-\alias{extract_best_aapc}
 \title{Segmented Regression using Linear Splines}
 \usage{
 segmented_reg(
@@ -23,18 +17,6 @@ segmented_reg(
 )
 
 \method{print}{edgy_segmented_reg}(x, ...)
-
-extract_fits(x, ...)
-
-extract_best_model(x, ...)
-
-extract_best_predictions(x, ...)
-
-extract_best_metrics(x, ...)
-
-extract_best_apc(x, ...)
-
-extract_best_aapc(x, ...)
 }
 \arguments{
 \item{formula}{Model formula.}
@@ -82,13 +64,7 @@ available processes.
 }
 \examples{
 \dontrun{
-fit <- segmented_reg(rate ~ year, data = df)
-
-extract_best_model(fit)
-extract_best_metrics(fit)
-extract_best_predictions(fit)
-extract_best_apc(fit)
-extract_best_aapc(fit)
+res <- segmented_reg(rate ~ year, data = df)
 }
 
 }

@@ -41,13 +41,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' fit <- segmented_reg(rate ~ year, data = df)
-#'
-#' extract_best_model(fit)
-#' extract_best_metrics(fit)
-#' extract_best_predictions(fit)
-#' extract_best_apc(fit)
-#' extract_best_aapc(fit)
+#' res <- segmented_reg(rate ~ year, data = df)
 #' }
 #'
 #' @md
@@ -76,11 +70,13 @@ segmented_reg <- function(
     wts <- events
   }
 
-  metric <- rlang::arg_match(metric, c('bic', 'bic3', 'aic', 'aicc'))
+  metric_choices <- c('bic', 'bic3', 'aic', 'aicc')
+  metric <- rlang::arg_match(metric, metric_choices)
 
   opts$fun <- log
   opts$inv_fun <- exp
   opts$conf.type <- "parametric"
+  opts$metrics <- metric_choices
 
   knot_outputs <- make_knot_sets(x_vals, opts)
   opts <- knot_outputs$opts
@@ -89,6 +85,11 @@ segmented_reg <- function(
   no_knot_form <- rlang::inject(opts$fun(!!y_var) ~ !!x_var)
 
   no_knot_model <- stats::lm(formula = no_knot_form, data = data, weights = wts)
+
+  no_knot_model <- structure(
+    no_knot_model,
+    class = c("edgy_spline_fit", class(no_knot_model))
+  )
 
   no_knot_data <-
     tibble::enframe(
@@ -100,7 +101,7 @@ segmented_reg <- function(
 
   res <-
     knot_sets |>
-    tibble::enframe(name = "id", value = "knots") |>
+    tibble::enframe(name = NULL, value = "knots") |>
     dplyr::mutate(
       model = purrr::map(
         .x = knots,
@@ -119,35 +120,34 @@ segmented_reg <- function(
       nknots = purrr::map_int(knots, length)
     ) |>
     dplyr::bind_rows(no_knot_data) |>
+    dplyr::arrange(nknots) |>
     dplyr::mutate(
+      id = 1:dplyr::n(),
       preds = purrr::map(model, \(m) m$fitted.values),
       k = purrr::map_int(model, \(m) base::length(m$coefficients) + 1),
       L = purrr::map_dbl(model, \(m) as.numeric(stats::logLik(m))),
       N = purrr::map_int(model, stats::nobs),
+      df = get_deg_free(N, nknots),
       sse = purrr::map_dbl(model, \(m) sum(m$residuals^2)),
       aic = -2 * L + 2 * k,
       aicc = aic + 2 * (k * (k + 1)) / (N - k - 1),
       bic = log(sse / N) + ((2 * k + 2) / N) * log(N),
       bic3 = log(sse / N) + ((3 * k + 2) / N) * log(N)
     ) |>
-    dplyr::arrange(nknots)
+    dplyr::select(id, dplyr::everything())
 
   best_fit <- dplyr::slice_min(res, !!rlang::sym(metric), with_ties = FALSE)
 
-  data_with_preds <-
-    data |>
-    dplyr::mutate(
-      est = opts$inv_fun(best_fit$preds[[1]])
-    )
-
-  # https://surveillance.cancer.gov/help/joinpoint/statistical-notes/statistics-related-to-the-k-joinpoint-model/degrees-of-freedom
-  deg_free <- (best_fit$N - best_fit$nknots) - (2 * (best_fit$nknots + 1))
+  data_with_preds <- dplyr::mutate(
+    .data = data,
+    est = opts$inv_fun(best_fit$preds[[1]])
+  )
 
   apc_data <- estimate_apc(
     x = x_vals,
     knots = best_fit$knots[[1]],
     model = best_fit$model[[1]],
-    deg_free = deg_free,
+    deg_free = best_fit$df,
     conf_level = conf_level,
     opts = opts
   )
@@ -165,7 +165,7 @@ segmented_reg <- function(
 
   aapc <- estimate_aapc(
     apc_data,
-    deg_free = deg_free,
+    deg_free = best_fit$df,
     conf_level = conf_level,
     opts = opts
   )
@@ -185,7 +185,7 @@ segmented_reg <- function(
       model = best_fit$model[[1]],
       criterion = metric,
       conf_level = conf_level,
-      deg_free = deg_free,
+      deg_free = best_fit$df,
       knots = best_fit$knots[[1]],
       metrics = list(
         nknots = best_fit$nknots,
@@ -214,6 +214,11 @@ segmented_reg_fit <- function(y, x, w, k, opts) {
   structure(fit, class = c("edgy_spline_fit", class(fit)))
 }
 
+# https://surveillance.cancer.gov/help/joinpoint/statistical-notes/statistics-related-to-the-k-joinpoint-model/degrees-of-freedom
+get_deg_free <- function(n, k) {
+  (n - k) - (2 * (k + 1))
+}
+
 #' @rdname segmented_reg
 #' @export
 print.edgy_segmented_reg <- function(x, ...) {
@@ -225,57 +230,4 @@ print.edgy_segmented_reg <- function(x, ...) {
   cli::cli_alert(glue::glue('Number of knots: {mets$nknots}'))
   cli::cli_alert(glue::glue('Knot locations: {locs}'))
   invisible(x)
-}
-
-#' @rdname segmented_reg
-#' @export
-extract_fits <- function(x, ...) {
-  rlang::check_dots_empty()
-  x$fits
-}
-
-#' @rdname segmented_reg
-#' @export
-extract_best_model <- function(x, ...) {
-  rlang::check_dots_empty()
-  x$best_fit$model
-}
-
-#' @rdname segmented_reg
-#' @export
-extract_best_predictions <- function(x, ...) {
-  rlang::check_dots_empty()
-
-  y_var <- rlang::f_lhs(x$formula)
-  x_var <- rlang::f_rhs(x$formula)
-
-  extract_best_model(x) |>
-    broom::augment() |>
-    dplyr::transmute(
-      !!x_var := x$x_vals,
-      !!y_var := x$y_vals,
-      .pred = x$opts$inv_fun(.fitted)
-    )
-}
-
-
-#' @rdname segmented_reg
-#' @export
-extract_best_metrics <- function(x, ...) {
-  rlang::check_dots_empty()
-  x$best_fit$metrics
-}
-
-#' @rdname segmented_reg
-#' @export
-extract_best_apc <- function(x, ...) {
-  rlang::check_dots_empty()
-  x$best_fit$APC
-}
-
-#' @rdname segmented_reg
-#' @export
-extract_best_aapc <- function(x, ...) {
-  rlang::check_dots_empty()
-  x$best_fit$AAPC
 }
