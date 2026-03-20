@@ -72,5 +72,8 @@ globalVariables(c(
   'value',
   'name',
   '.fitted',
-  'nknots'
+  'nknots',
+  '.data',
+  '.env',
+  'id'
 ))
