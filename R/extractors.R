@@ -70,7 +70,7 @@ extract_best_fit <- function(x, metric = NULL, nknots = NULL, ...) {
   }
 
   x$fits |>
-    dplyr::filter(dplyr::.data$nknots == .env$nknots) |>
+    dplyr::filter(.data$nknots == .env$nknots) |>
     dplyr::slice_min(!!rlang::sym(metric), with_ties = FALSE)
 }
 
@@ -116,12 +116,19 @@ extract_best_predictions <- function(x, metric = NULL, nknots = NULL, ...) {
   y_var <- rlang::f_lhs(x$formula)
   x_var <- rlang::f_rhs(x$formula)
 
+  curr_fit <- extract_best_fit(x, metric, nknots)
+  periods <- get_periods(x$x_vals, curr_fit$knots[[1]])
+
   extract_best_model(x, metric, nknots) |>
     broom::augment() |>
     dplyr::transmute(
       !!x_var := x$x_vals,
       !!y_var := x$y_vals,
       .pred = x$opts$inv_fun(.fitted)
+    ) |>
+    dplyr::left_join(
+      periods,
+      by = dplyr::join_by(dplyr::between(!!x_var, period_start, period_end))
     )
 }
 
@@ -145,6 +152,7 @@ extract_best_apc <- function(x, metric = NULL, nknots = NULL, ...) {
     opts = x$opts
   ) |>
     dplyr::select(
+      segment,
       period_start,
       period_end,
       apc,

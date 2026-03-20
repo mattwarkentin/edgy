@@ -27,6 +27,7 @@ get_periods <- function(x, knots) {
 
   tibble::tibble(period_years) |>
     dplyr::transmute(
+      segment = factor(1:dplyr::n()),
       period_start = period_years,
       period_end = dplyr::lead(period_start)
     ) |>

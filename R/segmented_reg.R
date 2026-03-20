@@ -155,6 +155,7 @@ segmented_reg <- function(
   apc <-
     apc_data |>
     dplyr::select(
+      segment,
       period_start,
       period_end,
       apc,

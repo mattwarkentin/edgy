@@ -75,5 +75,6 @@ globalVariables(c(
   'nknots',
   '.data',
   '.env',
-  'id'
+  'id',
+  'segment'
 ))
