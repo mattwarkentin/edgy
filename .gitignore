@@ -4,7 +4,4 @@
 .Ruserdata
 .DS_Store
 /.quarto/
-inst/Examples.R
-inst/Sample.Data.txt
-inst/lit/
-inst/nci-apc.R
+inst/misc/

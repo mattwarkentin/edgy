@@ -2,6 +2,7 @@
 ^LICENSE\.md$
 ^.*\.Rproj$
 ^\.Rproj\.user$
-inst/lit
+inst/misc
 ^README\.Rmd$
 ^\.github$
+^cran-comments\.md$
