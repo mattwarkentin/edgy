@@ -5,13 +5,12 @@
 
 <!-- badges: start -->
 
-[![Lifecycle:
-experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![R-CMD-check](https://github.com/mattwarkentin/edgy/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/mattwarkentin/edgy/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 The goal of `edgy` is to fit segmented line regression models (i.e.,
-linear spline models) to estimate changes in time-series trend data.
+piecewise linear spline models) to estimate trends in time-series cancer
+incidence and mortality data.
 
 To install `edgy`, run the following code:
 
