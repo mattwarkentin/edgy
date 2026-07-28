@@ -40,9 +40,8 @@
 #' @import mirai
 #'
 #' @examples
-#' \dontrun{
-#' res <- segmented_reg(rate ~ year, data = df)
-#' }
+#' df <- read.delim(system.file("example.txt", package = "edgy"), header = FALSE)
+#' res <- segmented_reg(V3 ~ V2, data = df)
 #'
 #' @md
 #' @export

@@ -24,8 +24,8 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' res <- segmented_reg(rate ~ year, data = df)
+#' df <- read.delim(system.file("example.txt", package = "edgy"), header = FALSE)
+#' res <- segmented_reg(V3 ~ V2, data = df)
 #'
 #' extract_best_fit(res)
 #' extract_best_model(res)
@@ -33,7 +33,6 @@
 #' extract_best_predictions(res)
 #' extract_best_apc(res)
 #' extract_best_aapc(res)
-#' }
 extract_fits <- function(x, ...) {
   rlang::check_dots_empty()
   x$fits

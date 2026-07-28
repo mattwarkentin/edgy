@@ -30,6 +30,9 @@
 #'
 #' @md
 #'
+#' @examples
+#' knot_opts()
+#'
 #' @export
 knot_opts <- function(
   min_knots = 1L,

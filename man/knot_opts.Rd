@@ -61,3 +61,7 @@ Define rules for selecting knot locations for segmented regression.
 The minimum number of observations required to run the segmented regression
 analysis is estimated as \code{(2 * min_obs_end) + (max_knots - 1) * min_obs_between + max_knots}.
 }
+\examples{
+knot_opts()
+
+}

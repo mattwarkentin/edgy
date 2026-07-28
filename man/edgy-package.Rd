@@ -6,15 +6,23 @@
 \alias{edgy-package}
 \title{edgy: Fit Segmented Regression Models}
 \description{
-Fit linear spline models to assess trends in time-series data. Report estimates for knot locations and annual percent changes in rates.
+Estimates piecewise linear spline models for assessing temporal trends in cancer incidence and mortality rates. Provides tools for identifying and reporting knot locations, annual percent changes (APCs), and average annual percent changes (AAPCs), facilitating the analysis and communication of changes in cancer rates over time.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/mattwarkentin/edgy}
+  \item Report bugs at \url{https://github.com/mattwarkentin/edgy/issues}
+}
+
 }
 \author{
 \strong{Maintainer}: Matthew T. Warkentin \email{matthew.warkentin@ucalgary.ca} (\href{https://orcid.org/0000-0001-8730-3511}{ORCID}) [copyright holder]
 
 Other contributors:
 \itemize{
-  \item Yibing Ruan \email{yibing.ruan@ahs.ca} [contributor]
   \item John Hutchinson \email{john.hutchinson@ucalgary.ca} [contributor]
+  \item Yibing Ruan \email{yibing.ruan@cancercarealberta.ca} [contributor]
 }
 
 }

@@ -63,8 +63,7 @@ this function will fit segmented regression models in parallel using all
 available processes.
 }
 \examples{
-\dontrun{
-res <- segmented_reg(rate ~ year, data = df)
-}
+df <- read.delim(system.file("example.txt", package = "edgy"), header = FALSE)
+res <- segmented_reg(V3 ~ V2, data = df)
 
 }
