@@ -4,11 +4,14 @@ Version: 0.0.0.9000
 Authors@R: c(
     person("Matthew T.", "Warkentin", , "matthew.warkentin@ucalgary.ca", 
            role = c("aut", "cre", "cph"), comment = c(ORCID = "0000-0001-8730-3511")),
-    person("Yibing", "Ruan", , "yibing.ruan@ahs.ca", role = "ctb"),
-    person("John", "Hutchinson", , "john.hutchinson@ucalgary.ca", role = "ctb")
+    person("John", "Hutchinson", , "john.hutchinson@ucalgary.ca", role = "ctb"),
+    person("Yibing", "Ruan", , "yibing.ruan@cancercarealberta.ca", role = "ctb")
   )
-Description: Fit linear spline models to assess trends in time-series data.
-  Report estimates for knot locations and annual percent changes in rates.
+Description: Estimates piecewise linear spline models for assessing temporal
+    trends in cancer incidence and mortality rates. Provides tools for
+    identifying and reporting knot locations, annual percent changes (APCs), 
+    and average annual percent changes (AAPCs), facilitating the analysis and 
+    communication of changes in cancer rates over time.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -26,3 +29,5 @@ Imports:
     purrr (>= 1.1.0),
     rlang,
     tibble
+URL: https://github.com/mattwarkentin/edgy
+BugReports: https://github.com/mattwarkentin/edgy/issues
