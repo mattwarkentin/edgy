@@ -29,6 +29,18 @@ check_nonnegative_int <- function(x) {
   )
 }
 
+check_list_of_numeric_vectors <- function(x) {
+  if (
+    rlang::is_list(x) && purrr::every(x, \(x) is.numeric(x) && is.vector(x))
+  ) {
+    return(invisible(x))
+  }
+  x_nm <- deparse(substitute(x))
+  rlang::abort(
+    message = glue::glue("`{x_nm}` must be list of numeric vectors.")
+  )
+}
+
 globalVariables(c(
   'min_knots',
   'max_knots',

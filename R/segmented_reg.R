@@ -6,10 +6,10 @@
 #'   criterion. Information about the best model can be extracted from the
 #'   returned object using the `extract_best_*()` set of functions.
 #'
-#' @param formula Model formula.
-#' @param data Data frame or `tibble`.
+#' @param formula Model formula (e.g., `year ~ rate`).
+#' @param data Data frame or [`tibble::tibble`] with variables in `formula`.
 #' @param events Vector with the number of events (e.g., deaths) that correspond
-#'   to the rate data in the formula. If provided, weighted least squares is
+#'   to the rate data in the `formula.` If provided, weighted least squares is
 #'   used instead of ordinary least squares for fitting regression models.
 #' @param opts A `knots_opt()` object providing knot location options.
 #' @param metric Metric to use for model selection. One of `"bic"`, `"bic3"`,
@@ -20,6 +20,9 @@
 #' @param progress Whether to show progress bars. By default, progress bars are
 #'   enabled in interactive sessions (i.e., if `rlang::is_interactive()`
 #'   returns `TRUE`).
+#' @param knots A numeric vector of knot locations or a `list` of numeric
+#'   vectors specifying sets of knot locations. If provided, this overrides the
+#'   automatic knot selection performed using `knot_opts()` and `data`.
 #' @param x A `segmented_reg()` object.
 #' @param ... Not currently used.
 #'
@@ -53,6 +56,7 @@ segmented_reg <- function(
   metric = 'bic3',
   conf_level = 0.95,
   progress = rlang::is_interactive(),
+  knots,
   ...
 ) {
   x_var <- rlang::f_rhs(formula)
@@ -77,9 +81,17 @@ segmented_reg <- function(
   opts$conf.type <- "parametric"
   opts$metrics <- metric_choices
 
-  knot_outputs <- make_knot_sets(x_vals, opts)
-  opts <- knot_outputs$opts
-  knot_sets <- knot_outputs$knot_sets
+  if (rlang::is_missing(knots)) {
+    knot_outputs <- make_knot_sets(x_vals, opts)
+    opts <- knot_outputs$opts
+    knot_sets <- knot_outputs$knot_sets
+  } else {
+    if (rlang::is_bare_numeric(knots)) {
+      knots <- list(knots)
+    }
+    check_list_of_numeric_vectors(knots)
+    knot_sets <- knots
+  }
 
   no_knot_form <- rlang::inject(opts$fun(!!y_var) ~ !!x_var)
 

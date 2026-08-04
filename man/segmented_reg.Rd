@@ -13,18 +13,19 @@ segmented_reg(
   metric = "bic3",
   conf_level = 0.95,
   progress = rlang::is_interactive(),
+  knots,
   ...
 )
 
 \method{print}{edgy_segmented_reg}(x, ...)
 }
 \arguments{
-\item{formula}{Model formula.}
+\item{formula}{Model formula (e.g., \code{year ~ rate}).}
 
-\item{data}{Data frame or \code{tibble}.}
+\item{data}{Data frame or \code{\link[tibble:tibble]{tibble::tibble}} with variables in \code{formula}.}
 
 \item{events}{Vector with the number of events (e.g., deaths) that correspond
-to the rate data in the formula. If provided, weighted least squares is
+to the rate data in the \code{formula.} If provided, weighted least squares is
 used instead of ordinary least squares for fitting regression models.}
 
 \item{opts}{A \code{knots_opt()} object providing knot location options.}
@@ -39,6 +40,10 @@ Defaults to 0.95 which corresponds to a 95 percent confidence interval.}
 \item{progress}{Whether to show progress bars. By default, progress bars are
 enabled in interactive sessions (i.e., if \code{rlang::is_interactive()}
 returns \code{TRUE}).}
+
+\item{knots}{A numeric vector of knot locations or a \code{list} of numeric
+vectors specifying sets of knot locations. If provided, this overrides the
+automatic knot selection performed using \code{knot_opts()} and \code{data}.}
 
 \item{...}{Not currently used.}
 
