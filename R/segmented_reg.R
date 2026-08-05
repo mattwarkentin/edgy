@@ -81,18 +81,6 @@ segmented_reg <- function(
   opts$conf.type <- "parametric"
   opts$metrics <- metric_choices
 
-  if (rlang::is_missing(knots)) {
-    knot_outputs <- make_knot_sets(x_vals, opts)
-    opts <- knot_outputs$opts
-    knot_sets <- knot_outputs$knot_sets
-  } else {
-    if (rlang::is_bare_numeric(knots)) {
-      knots <- list(knots)
-    }
-    check_list_of_numeric_vectors(knots)
-    knot_sets <- knots
-  }
-
   no_knot_form <- rlang::inject(opts$fun(!!y_var) ~ !!x_var)
 
   no_knot_model <- stats::lm(formula = no_knot_form, data = data, weights = wts)
@@ -109,6 +97,19 @@ segmented_reg <- function(
       value = 'model'
     ) |>
     dplyr::mutate(nknots = 0)
+
+  if (rlang::is_missing(knots)) {
+    knot_outputs <- make_knot_sets(x_vals, opts)
+    opts <- knot_outputs$opts
+    knot_sets <- knot_outputs$knot_sets
+  } else {
+    if (rlang::is_bare_numeric(knots)) {
+      knots <- list(knots)
+    }
+    check_list_of_numeric_vectors(knots)
+    knot_sets <- knots
+    no_knot_data <- NULL
+  }
 
   res <-
     knot_sets |>

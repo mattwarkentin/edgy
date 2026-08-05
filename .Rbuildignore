@@ -6,3 +6,4 @@ inst/misc
 ^README\.Rmd$
 ^\.github$
 ^cran-comments\.md$
+^CRAN-SUBMISSION$
