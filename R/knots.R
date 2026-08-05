@@ -22,7 +22,7 @@
 #' The minimum number of observations required to run the segmented regression
 #'   analysis is estimated as `(2 * min_obs_end) + (max_knots - 1) * min_obs_between + max_knots`.
 #'
-#' @return `knot_opts()` returns a list with class `"edgy_knot_opts"`.
+#' @return `knot_opts()` returns a list with class `"cantrends_knot_opts"`.
 #'   `make_knot_sets()` returns a two-item list with (1) a list of vectors that
 #'   specify the knot locations to evaluate in grid search and (2) the updated
 #'   `opts` object. `make_point_set()` returns the vector of points used to
@@ -83,13 +83,13 @@ knot_opts <- function(
       pts_between = pts_between,
       force = force
     ),
-    class = "edgy_knot_opts"
+    class = "cantrends_knot_opts"
   )
 }
 
 #' @rdname knot_opts
 #' @export
-print.edgy_knot_opts <- function(x, ...) {
+print.cantrends_knot_opts <- function(x, ...) {
   if (rlang::is_null(x$max_knots)) {
     max_knots <- "<<Default>>"
   } else {
@@ -111,7 +111,7 @@ print.edgy_knot_opts <- function(x, ...) {
 #' @rdname knot_opts
 #' @export
 make_knot_sets <- function(x, opts) {
-  rlang::inherits_any(opts, "edgy_knot_opts")
+  rlang::inherits_any(opts, "cantrends_knot_opts")
 
   suggested_max_knots <- suggest_max_knots(x)
 

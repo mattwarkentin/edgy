@@ -12,7 +12,7 @@
 #'   - `extract_fits()`: a `tibble` of statistics for model fits
 #'   - `extract_best_fit()`: a one-row `tibble` of statistics for a specific
 #'     model fit
-#'   - `extract_best_model*()`: a model object with class `"edgy_spline_fit"`
+#'   - `extract_best_model*()`: a model object with class `"cantrends_spline_fit"`
 #'   - `extract_best_metrics()`: a named-list of model fit metrics
 #'   - `extract_best_predictions()`: a `tibble` with the variables used in the
 #'     model formula and predictions based on the fitted model
@@ -24,7 +24,7 @@
 #' @export
 #'
 #' @examples
-#' df <- read.delim(system.file("example.txt", package = "edgy"), header = FALSE)
+#' df <- read.delim(system.file("example.txt", package = "cantrends"), header = FALSE)
 #' res <- segmented_reg(V3 ~ V2, data = df)
 #'
 #' extract_best_fit(res)

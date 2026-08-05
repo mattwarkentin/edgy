@@ -2,7 +2,7 @@
 % Please edit documentation in R/knots.R
 \name{knot_opts}
 \alias{knot_opts}
-\alias{print.edgy_knot_opts}
+\alias{print.cantrends_knot_opts}
 \alias{make_knot_sets}
 \alias{make_point_set}
 \title{Knot Options}
@@ -16,7 +16,7 @@ knot_opts(
   force = FALSE
 )
 
-\method{print}{edgy_knot_opts}(x, ...)
+\method{print}{cantrends_knot_opts}(x, ...)
 
 make_knot_sets(x, opts)
 
@@ -48,7 +48,7 @@ Default is \code{FALSE}.}
 \item{opts}{A \code{knot_opts()} object.}
 }
 \value{
-\code{knot_opts()} returns a list with class \code{"edgy_knot_opts"}.
+\code{knot_opts()} returns a list with class \code{"cantrends_knot_opts"}.
 \code{make_knot_sets()} returns a two-item list with (1) a list of vectors that
 specify the knot locations to evaluate in grid search and (2) the updated
 \code{opts} object. \code{make_point_set()} returns the vector of points used to

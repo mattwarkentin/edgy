@@ -42,7 +42,7 @@ The following objects are returned by the extraction functions:
 \item \code{extract_fits()}: a \code{tibble} of statistics for model fits
 \item \code{extract_best_fit()}: a one-row \code{tibble} of statistics for a specific
 model fit
-\item \verb{extract_best_model*()}: a model object with class \code{"edgy_spline_fit"}
+\item \verb{extract_best_model*()}: a model object with class \code{"cantrends_spline_fit"}
 \item \code{extract_best_metrics()}: a named-list of model fit metrics
 \item \code{extract_best_predictions()}: a \code{tibble} with the variables used in the
 model formula and predictions based on the fitted model
@@ -56,7 +56,7 @@ Percent Change (AAPC) for the chosen model
 Extract Information from Segmented Regression Objects
 }
 \examples{
-df <- read.delim(system.file("example.txt", package = "edgy"), header = FALSE)
+df <- read.delim(system.file("example.txt", package = "cantrends"), header = FALSE)
 res <- segmented_reg(V3 ~ V2, data = df)
 
 extract_best_fit(res)

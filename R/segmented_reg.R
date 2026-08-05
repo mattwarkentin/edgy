@@ -34,7 +34,7 @@
 #'   this function will fit segmented regression models in parallel using all
 #'   available processes.
 #'
-#' @return A named-list of class `"edgy_segmented_reg"`.
+#' @return A named-list of class `"cantrends_segmented_reg"`.
 #'
 #' @md
 #'
@@ -43,7 +43,7 @@
 #' @import mirai
 #'
 #' @examples
-#' df <- read.delim(system.file("example.txt", package = "edgy"), header = FALSE)
+#' df <- read.delim(system.file("example.txt", package = "cantrends"), header = FALSE)
 #' res <- segmented_reg(V3 ~ V2, data = df)
 #'
 #' @md
@@ -87,7 +87,7 @@ segmented_reg <- function(
 
   no_knot_model <- structure(
     no_knot_model,
-    class = c("edgy_spline_fit", class(no_knot_model))
+    class = c("cantrends_spline_fit", class(no_knot_model))
   )
 
   no_knot_data <-
@@ -215,7 +215,7 @@ segmented_reg <- function(
   )
   structure(
     ret,
-    class = c("edgy_segmented_reg", class(ret))
+    class = c("cantrends_segmented_reg", class(ret))
   )
 }
 
@@ -224,7 +224,7 @@ segmented_reg_fit <- function(y, x, w, k, opts) {
     formula = rlang::inject(opts$fun(!!y) ~ lspline::lspline(!!x, k)),
     weights = w
   )
-  structure(fit, class = c("edgy_spline_fit", class(fit)))
+  structure(fit, class = c("cantrends_spline_fit", class(fit)))
 }
 
 # https://surveillance.cancer.gov/help/joinpoint/statistical-notes/statistics-related-to-the-k-joinpoint-model/degrees-of-freedom
@@ -234,7 +234,7 @@ get_deg_free <- function(n, k) {
 
 #' @rdname segmented_reg
 #' @export
-print.edgy_segmented_reg <- function(x, ...) {
+print.cantrends_segmented_reg <- function(x, ...) {
   nmodels <- format(nrow(x$fits), big.mark = ',')
   mets <- x$best_fit$metrics
   locs <- glue::glue_collapse(x$best_fit$knots, ", ")

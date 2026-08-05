@@ -1,4 +1,4 @@
-Package: edgy
+Package: cantrends
 Title: Fit Segmented Regression Models
 Version: 0.1.0
 Authors@R: c(
@@ -29,5 +29,5 @@ Imports:
     purrr (>= 1.1.0),
     rlang,
     tibble
-URL: https://github.com/mattwarkentin/edgy
-BugReports: https://github.com/mattwarkentin/edgy/issues
+URL: https://github.com/mattwarkentin/cantrends
+BugReports: https://github.com/mattwarkentin/cantrends/issues

@@ -2,7 +2,7 @@
 % Please edit documentation in R/segmented_reg.R
 \name{segmented_reg}
 \alias{segmented_reg}
-\alias{print.edgy_segmented_reg}
+\alias{print.cantrends_segmented_reg}
 \title{Segmented Regression using Linear Splines}
 \usage{
 segmented_reg(
@@ -17,7 +17,7 @@ segmented_reg(
   ...
 )
 
-\method{print}{edgy_segmented_reg}(x, ...)
+\method{print}{cantrends_segmented_reg}(x, ...)
 }
 \arguments{
 \item{formula}{Model formula (e.g., \code{year ~ rate}).}
@@ -50,7 +50,7 @@ automatic knot selection performed using \code{knot_opts()} and \code{data}.}
 \item{x}{A \code{segmented_reg()} object.}
 }
 \value{
-A named-list of class \code{"edgy_segmented_reg"}.
+A named-list of class \code{"cantrends_segmented_reg"}.
 }
 \description{
 \code{segmented_reg()} fits a linear spline model for the outcome (e.g., rates)
@@ -68,7 +68,7 @@ this function will fit segmented regression models in parallel using all
 available processes.
 }
 \examples{
-df <- read.delim(system.file("example.txt", package = "edgy"), header = FALSE)
+df <- read.delim(system.file("example.txt", package = "cantrends"), header = FALSE)
 res <- segmented_reg(V3 ~ V2, data = df)
 
 }

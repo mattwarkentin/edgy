@@ -1,3 +1,3 @@
-# edgy 0.1.0
+# cantrends 0.1.0
 
 * Initial CRAN release.
